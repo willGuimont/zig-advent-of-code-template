@@ -75,6 +75,16 @@ pub fn build(b: *std.Build) void {
 
     runner_exe.step.dependOn(&write_runner.step);
 
+    // Lightweight build-only executable for ZLS "check" step (no install -> -fno-emit-bin).
+    const runner_check = b.addExecutable(.{
+        .name = "advent-of-code-check",
+        .root_module = runner_mod,
+    });
+    runner_check.step.dependOn(&write_runner.step);
+
+    const check_step = b.step("check", "Check if advent-of-code builds (for ZLS)");
+    check_step.dependOn(&runner_check.step);
+
     // Fetch missing inputs before running
     const fetch_step = b.step("fetch-inputs", "Fetch missing Advent of Code inputs");
     if (days_option) |_| {
@@ -259,6 +269,20 @@ fn buildRunnerSource(year: []const u8, days: []usize, use_timer: bool, use_color
         while (i < s.len) : (i += 1) {
             buf[pos] = s[i];
             pos += 1;
+        }
+    }
+
+    // When no days are selected (e.g. `zig build check` with default options),
+    // reference the config constants so they are not considered unused.
+    if (days.len == 0) {
+        const settings_refs = "    _ = USE_COLOR;\n    _ = COLOR_RED;\n    _ = COLOR_GREEN;\n    _ = COLOR_RESET;\n    _ = RUN_EXAMPLE;\n    _ = RUN_REAL;\n\n";
+        {
+            const s = settings_refs;
+            var i: usize = 0;
+            while (i < s.len) : (i += 1) {
+                buf[pos] = s[i];
+                pos += 1;
+            }
         }
     }
 
