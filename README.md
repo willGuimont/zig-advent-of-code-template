@@ -1,4 +1,4 @@
-# ZAdvent
+# Zig Advent of Code Template
 
 Advent of Code solutions using the Zig programming language.
 This template provides a starting point for your Advent of Code solutions.
